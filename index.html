@@ -235,6 +235,7 @@
     </div>
 
     <script type="module">
+                <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -349,24 +350,21 @@
             const cSt = document.getElementById('status-cat-filter').value;
             const b = getBDate();
 
-            // Search Panel
             document.getElementById('search-results').innerHTML = Object.values(localProducts)
                 .filter(p => (cS === "ALL" || p.category === cS) && p.name.toLowerCase().includes(qS))
                 .map(p => `<div class="product-card"><div><p class="product-name">${p.name}</p><div class="tag-row"><span class="category-tag">${p.category || 'General'}</span><span class="unit-tag">${p.unitType || 'Piece'}</span></div><p style="color:var(--primary); font-weight:bold; margin-top:5px;">Rs. ${p.price}</p></div><span class="stat-label" style="text-align:right">Stock: ${p.qty}</span></div>`).join('');
 
-            // Manage Panel
             document.getElementById('inventory-list').innerHTML = Object.values(localProducts)
                 .filter(p => (cM === "ALL" || p.category === cM) && p.name.toLowerCase().includes(qM))
                 .map(p => `<div class="product-card"><div><p class="product-name">${p.name}</p><div class="tag-row"><span class="category-tag">${p.category || 'General'}</span><span class="unit-tag">${p.unitType || 'Piece'}</span></div><button class="delete-btn" onclick="window.deleteProd('${p.id}')">🗑️ Delete</button></div><div class="qty-controls"><button class="qty-btn btn-minus" onclick="adjustStock('${p.id}', -1)">-</button><b style="min-width:30px; text-align:center; color:#fff;">${p.qty}</b><button class="qty-btn btn-plus" onclick="adjustStock('${p.id}', 1)">+</button></div></div>`).join('');
 
-            // Status Panel - UPDATED
             document.getElementById('status-results').innerHTML = Object.values(localProducts)
                 .filter(p => (cSt === "ALL" || p.category === cSt))
                 .map(p => {
-                    return `<div class="product-card"><div><p class="product-name">${p.name}</p><span class="stat-label">Avail: ${p.qty}</span></div><button class="sale-btn" onclick="adjustStock('${p.id}', -1)">🛒 Sell</button></div>`;
+                    const s = (p.salesLog && p.salesLog[b]) ? p.salesLog[b] : 0;
+                    return `<div class="product-card"><div><p class="product-name">${p.name}</p><span class="stat-label">Avail: ${p.qty}</span></div><button class="sale-btn" onclick="adjustStock('${p.id}', -1)">${s > 0 ? '🛒 Sold ' + s : '🛒 Sell'}</button></div>`;
                 }).join('');
 
-            // Shortages Panel
             const sh = Object.values(localProducts).filter(p => p.qty <= (p.unitType === "Carton" ? 2 : 3));
             document.getElementById('shortage-results').innerHTML = sh.length ? sh.map(p => `<div class="product-card" style="border-left:4px solid var(--danger)"><div><p class="product-name">${p.name}</p><span class="unit-tag">${p.unitType || 'Piece'}</span></div><b style="color:var(--danger)">${p.qty} Left</b></div>`).join('') : `<p style="text-align:center; color:var(--text-dim); margin-top:40px;">No critical shortages.</p>`;
             
@@ -402,61 +400,8 @@
         window.searchProducts = renderAll;
         window.renderStatus = renderAll;
         window.renderInventory = renderAll;
-    </script>
-</body>
-</html>rCase().includes(qS))
-‎                .map(p => `<div class="product-card"><div><p class="product-name">${p.name}</p><div class="tag-row"><span class="category-tag">${p.category || 'General'}</span><span class="unit-tag">${p.unitType || 'Piece'}</span></div><p style="color:var(--primary); font-weight:bold; margin-top:5px;">Rs. ${p.price}</p></div><span class="stat-label" style="text-align:right">Stock: ${p.qty}</span></div>`).join('');
-‎
-‎            // Manage Panel
-‎            document.getElementById('inventory-list').innerHTML = Object.values(localProducts)
-‎                .filter(p => (cM === "ALL" || p.category === cM) && p.name.toLowerCase().includes(qM))
-‎                .map(p => `<div class="product-card"><div><p class="product-name">${p.name}</p><div class="tag-row"><span class="category-tag">${p.category || 'General'}</span><span class="unit-tag">${p.unitType || 'Piece'}</span></div><button class="delete-btn" onclick="window.deleteProd('${p.id}')">🗑️ Delete</button></div><div class="qty-controls"><button class="qty-btn btn-minus" onclick="adjustStock('${p.id}', -1)">-</button><b style="min-width:30px; text-align:center; color:#fff;">${p.qty}</b><button class="qty-btn btn-plus" onclick="adjustStock('${p.id}', 1)">+</button></div></div>`).join('');
-‎
-‎            // Status Panel
-‎            document.getElementById('status-results').innerHTML = Object.values(localProducts)
-‎                .filter(p => (cSt === "ALL" || p.category === cSt))
-‎                .map(p => {
-‎                    const s = (p.salesLog && p.salesLog[b]) ? p.salesLog[b] : 0;
-‎                    return `<div class="product-card"><div><p class="product-name">${p.name}</p><span class="stat-label">Avail: ${p.qty}</span></div><button class="sale-btn" onclick="adjustStock('${p.id}', -1)">${s > 0 ? '🛒 Sold ' + s : '🛒 Sell'}</button></div>`;
-‎                }).join('');
-‎
-‎            // Shortages Panel
-‎            const sh = Object.values(localProducts).filter(p => p.qty <= (p.unitType === "Carton" ? 2 : 3));
-‎            document.getElementById('shortage-results').innerHTML = sh.length ? sh.map(p => `<div class="product-card" style="border-left:4px solid var(--danger)"><div><p class="product-name">${p.name}</p><span class="unit-tag">${p.unitType || 'Piece'}</span></div><b style="color:var(--danger)">${p.qty} Left</b></div>`).join('') : `<p style="text-align:center; color:var(--text-dim); margin-top:40px;">No critical shortages.</p>`;
-‎            
-‎            renderChips();
-‎        }
-‎
-‎        window.handleAuth = () => {
-‎            if (isManagerMode) {
-‎                const p = prompt("Admin PIN:");
-‎                if (p === systemPin) { isManagerMode = false; updateUI(); switchPage('page5', 'Stock Management', 'tab5'); }
-‎                else alert("Incorrect PIN");
-‎            } else { isManagerMode = true; updateUI(); switchPage('page2', 'Directory', 'tab2'); }
-‎        };
-‎
-‎        function updateUI() {
-‎            document.body.classList.toggle('manager-mode', isManagerMode);
-‎            document.getElementById('mode-label').innerText = isManagerMode ? "Manager" : "Owner";
-‎            document.getElementById('mode-toggle').classList.toggle('manager-active', isManagerMode);
-‎            renderAll();
-‎        }
-‎
-‎        window.switchPage = (id, title, tab) => {
-‎            if (isManagerMode && (id === 'page1' || id === 'page5')) return;
-‎            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-‎            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-tab'));
-‎            document.getElementById(id).classList.add('active');
-‎            document.getElementById(tab).classList.add('active-tab');
-‎            document.getElementById('app-title').innerText = title;
-‎        };
-‎
-‎        window.deleteProd = id => { if(confirm("Permanently delete this product?")) remove(ref(db, 'products/' + id)); };
-‎
-‎        window.searchProducts = renderAll;
-‎        window.renderStatus = renderAll;
-‎        window.renderInventory = renderAll;
-‎    </script>
+    </script>        
+            
 ‎</body>
 ‎</html>
 ‎
