@@ -319,6 +319,90 @@
                 document.getElementById('new-name').value = '';
                 document.getElementById('new-price').value = '';
                 document.getElementById('new-qty').value = '0';
+ <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = { databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        let localProducts = {};
+        let localCategories = [];
+        let systemPin = "1234"; 
+        let isManagerMode = true;
+
+        const getBDate = () => {
+            const d = new Date();
+            const p = new Date(d.toLocaleString("en-US", {timeZone: "Asia/Karachi"}));
+            if (p.getHours() < 5) p.setDate(p.getDate() - 1);
+            return p.toDateString();
+        };
+
+        onValue(ref(db, 'settings/adminPin'), s => { if(s.val()) systemPin = s.val(); });
+        
+        onValue(ref(db, 'categories'), s => {
+            localCategories = s.val() ? Object.values(s.val()) : [{name: "General"}];
+            const h = `<option value="ALL">All Categories</option>` + localCategories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            document.getElementById('new-category').innerHTML = h;
+            document.getElementById('search-cat-filter').innerHTML = h;
+            document.getElementById('status-cat-filter').innerHTML = h;
+            document.getElementById('manage-cat-filter').innerHTML = h;
+            renderChips();
+        });
+
+        onValue(ref(db, 'products'), s => {
+            localProducts = s.val() || {};
+            renderAll();
+            calculateTotals();
+        });
+
+        function calculateTotals() {
+            let v = 0, p = 0, sl = 0;
+            const b = getBDate();
+            Object.values(localProducts).forEach(i => {
+                const q = parseInt(i.qty) || 0;
+                const pr = parseFloat(i.price.toString().replace(/[^0-9.]/g, '')) || 0;
+                v += (q * pr);
+                if (i.purchaseLog && i.purchaseLog[b]) p += (i.purchaseLog[b] * pr);
+                if (i.salesLog && i.salesLog[b]) sl += (i.salesLog[b] * pr);
+            });
+            document.getElementById('stat-total-value').innerText = "Rs. " + v.toLocaleString();
+            document.getElementById('stat-today-purchase').innerText = "Rs. " + p.toLocaleString();
+            document.getElementById('stat-today-sale').innerText = "Rs. " + sl.toLocaleString();
+        }
+
+        window.adjustStock = (id, d) => {
+            const i = localProducts[id];
+            if (!i) return;
+            const b = getBDate();
+            const u = {};
+            if (d > 0) {
+                const c = (i.purchaseLog && i.purchaseLog[b]) ? i.purchaseLog[b] : 0;
+                u[`products/${id}/purchaseLog/${b}`] = c + d;
+            } else {
+                if (i.qty <= 0) return;
+                const c = (i.salesLog && i.salesLog[b]) ? i.salesLog[b] : 0;
+                u[`products/${id}/salesLog/${b}`] = c + 1;
+            }
+            u[`products/${id}/qty`] = Math.max(0, (parseInt(i.qty) || 0) + d);
+            update(ref(db), u);
+        };
+
+        window.addNewProduct = () => {
+            const n = document.getElementById('new-name').value.trim();
+            const p = document.getElementById('new-price').value.trim();
+            const q = parseInt(document.getElementById('new-qty').value) || 0;
+            const c = document.getElementById('new-category').value;
+            const u = document.getElementById('new-unit-type').value;
+            if(!n || !p) return alert("Enter name and price");
+            const id = "item_" + Date.now();
+            const data = { id, name: n, price: p, qty: q, category: c, unitType: u };
+            if(q > 0) { data.purchaseLog = {}; data.purchaseLog[getBDate()] = q; }
+            set(ref(db, 'products/' + id), data).then(() => {
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-price').value = '';
+                document.getElementById('new-qty').value = '0';
             });
         };
 
@@ -400,8 +484,7 @@
         window.searchProducts = renderAll;
         window.renderStatus = renderAll;
         window.renderInventory = renderAll;
-    </script>        
-            
+    </script>
 ‎</body>
 ‎</html>
 ‎
