@@ -377,24 +377,29 @@
         }
 
         window.handleAuth = () => {
-        if (isManagerMode) {
+        window.handleAuth = () => {
+    if (isManagerMode) {
         const p = prompt("Admin PIN:");
         if (p === systemPin) {
-        sessionStorage.setItem('user_pin', p);
-        
-        // Remove the class that hides admin buttons
-        document.body.classList.remove('manager-mode');
-        
-        // Redirect to the shop page
-        window.location.href = 'shop.html'; 
+            sessionStorage.setItem('user_pin', p);
+            
+            // 1. Remove the hiding class
+            document.body.classList.remove('manager-mode');
+            
+            // 2. Refresh the UI
+            isManagerMode = false;
+            updateUI(); 
+            
+            // 3. Navigate to the page
+            window.location.href = 'shop.html'; 
         } else {
-        alert("Incorrect PIN");
+            alert("Incorrect PIN");
         }
-        } else {
+    } else {
         sessionStorage.removeItem('user_pin');
         window.location.href = 'index.html';
-        }
-        };
+    }
+};
 
         function updateUI() {
             document.body.classList.toggle('manager-mode', isManagerMode);
