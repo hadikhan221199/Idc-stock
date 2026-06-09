@@ -9,6 +9,9 @@
     <link rel="apple-touch-icon" href="logo.png">
     
     <style>
+    .admin-only {
+    display: none !important;
+    }
         :root {
             --bg: #0b0b0e;
             --surface: #16161a;
@@ -359,12 +362,11 @@
                 .filter(p => (cM === "ALL" || p.category === cM) && p.name.toLowerCase().includes(qM))
                 .map(p => `<div class="product-card"><div><p class="product-name">${p.name}</p><div class="tag-row"><span class="category-tag">${p.category || 'General'}</span><span class="unit-tag">${p.unitType || 'Piece'}</span></div><button class="delete-btn" onclick="window.deleteProd('${p.id}')">🗑️ Delete</button></div><div class="qty-controls"><button class="qty-btn btn-minus" onclick="adjustStock('${p.id}', -1)">-</button><b style="min-width:30px; text-align:center; color:#fff;">${p.qty}</b><button class="qty-btn btn-plus" onclick="adjustStock('${p.id}', 1)">+</button></div></div>`).join('');
 
-            // Status Panel
+            // Status Panel - UPDATED
             document.getElementById('status-results').innerHTML = Object.values(localProducts)
                 .filter(p => (cSt === "ALL" || p.category === cSt))
                 .map(p => {
-                    const s = (p.salesLog && p.salesLog[b]) ? p.salesLog[b] : 0;
-                    return `<div class="product-card"><div><p class="product-name">${p.name}</p><span class="stat-label">Avail: ${p.qty}</span></div><button class="sale-btn" onclick="adjustStock('${p.id}', -1)">${s > 0 ? '🛒 Sold ' + s : '🛒 Sell'}</button></div>`;
+                    return `<div class="product-card"><div><p class="product-name">${p.name}</p><span class="stat-label">Avail: ${p.qty}</span></div><button class="sale-btn" onclick="adjustStock('${p.id}', -1)">🛒 Sell</button></div>`;
                 }).join('');
 
             // Shortages Panel
@@ -375,11 +377,20 @@
         }
 
         window.handleAuth = () => {
-            if (isManagerMode) {
-                const p = prompt("Admin PIN:");
-                if (p === systemPin) { isManagerMode = false; updateUI(); switchPage('page5', 'Stock Management', 'tab5'); }
-                else alert("Incorrect PIN");
-            } else { isManagerMode = true; updateUI(); switchPage('page2', 'Directory', 'tab2'); }
+        if (isManagerMode) {
+        const p = prompt("Admin PIN:");
+        if (p === systemPin) {
+        // Success: Store the PIN and go to the Accounting Portal
+        sessionStorage.setItem('user_pin', p);
+        window.location.href = 'shop.html'; 
+        } else {
+        alert("Incorrect PIN");
+        }
+        } else {
+        // Log out: Clear the session and go back home
+        sessionStorage.removeItem('user_pin');
+        window.location.href = 'index.html';
+        }
         };
 
         function updateUI() {
