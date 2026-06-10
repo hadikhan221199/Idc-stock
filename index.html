@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Hadi | Inventory</title>
+    <style>
+        :root { --bg: #0b0b0e; --surface: #16161a; --border: #2d2d35; --primary: #00ff88; --secondary: #ff9d00; --danger: #ff4757; --text-main: #ffffff; --text-dim: #a0a0ab; }
+        body { background-color: var(--bg) !important; color: var(--text-main) !important; padding-bottom: 90px; }
+        .page { display: none; padding: 20px; }
+        .active { display: block; }
+        /* Add your specific styles here */
+    </style>
+</head>
+<body class="manager-mode">
+    <header>
+        <h1 id="app-title">Directory</h1>
+        <div id="mode-toggle" onclick="handleAuth()">Mode</div>
+    </header>
+
+    <div id="page2" class="page active">
+        <div id="search-results"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        
+        const firebaseConfig = { databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        let localProducts = {};
+        let isManagerMode = true;
+
+        onValue(ref(db, 'products'), s => { 
+            localProducts = s.val() || {}; 
+            renderAll(); 
+        });
+
+        function renderAll() {
+            const results = document.getElementById('search-results');
+            if(results) {
+                results.innerHTML = Object.values(localProducts)
+                    .map(p => `<div class="product-card">${p.name} - ${p.qty}</div>`).join('');
+            }
+        }
+
+        window.handleAuth = () => { /* Your auth logic */ };
+    </script>
+</body>
+</html>
