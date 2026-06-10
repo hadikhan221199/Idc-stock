@@ -245,7 +245,7 @@
         let localProducts = {};
         let localCategories = [];
         let systemPin = "1234"; 
-        let isManagerMode = false;
+        let isManagerMode = true;
 
         const getBDate = () => {
             const d = new Date();
@@ -360,12 +360,25 @@
                 .map(p => `<div class="product-card"><div><p class="product-name">${p.name}</p><div class="tag-row"><span class="category-tag">${p.category || 'General'}</span><span class="unit-tag">${p.unitType || 'Piece'}</span></div><button class="delete-btn" onclick="window.deleteProd('${p.id}')">🗑️ Delete</button></div><div class="qty-controls"><button class="qty-btn btn-minus" onclick="adjustStock('${p.id}', -1)">-</button><b style="min-width:30px; text-align:center; color:#fff;">${p.qty}</b><button class="qty-btn btn-plus" onclick="adjustStock('${p.id}', 1)">+</button></div></div>`).join('');
 
             // Status Panel
-            document.getElementById('status-results').innerHTML = Object.values(localProducts)
-                .filter(p => (cSt === "ALL" || p.category === cSt))
-                .map(p => {
-                    const s = (p.salesLog && p.salesLog[b]) ? p.salesLog[b] : 0;
-                    return `<div class="product-card"><div><p class="product-name">${p.name}</p><span class="stat-label">Avail: ${p.qty}</span></div><button class="sale-btn" onclick="adjustStock('${p.id}', -1)">${s > 0 ? '🛒 Sold ' + s : '🛒 Sell'}</button></div>`;
-                }).join('');
+document.getElementById('status-results').innerHTML = Object.values(localProducts)
+    .filter(p => (cSt === "ALL" || p.category === cSt))
+    .map(p => {
+        const s = (p.salesLog && p.salesLog[b]) ? p.salesLog[b] : 0;
+        
+        // --- ADD THIS LOGIC HERE ---
+        const saleButton = !isManagerMode 
+            ? `<button class="sale-btn" onclick="adjustStock('${p.id}', -1)">${s > 0 ? '🛒 Sold ' + s : '🛒 Sell'}</button>` 
+            : ''; 
+        // ---------------------------
+
+        return `<div class="product-card">
+                    <div>
+                        <p class="product-name">${p.name}</p>
+                        <span class="stat-label">Avail: ${p.qty}</span>
+                    </div>
+                    ${saleButton}
+                </div>`;
+    }).join('');
 
             // Shortages Panel
             const sh = Object.values(localProducts).filter(p => p.qty <= (p.unitType === "Carton" ? 2 : 3));
