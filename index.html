@@ -3,32 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDC Business Manager</title>
-    </head>
+    <title>IDC Business Suite</title>
+    <style>
+        :root { --bg: #0b0b0e; --surface: #16161a; --border: #2d2d35; --primary: #00ff88; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn { background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 10px; color: white; cursor: pointer; text-align: center; }
+        .input { width: 100%; padding: 12px; margin: 10px 0; background: var(--surface); border: 1px solid var(--border); color: white; border-radius: 6px; }
+        .page { display: none; } .active { display: block; }
+    </style>
+</head>
 <body>
-    <div id="login-page" class="page active">
-        <input type="password" id="key" placeholder="Enter Access Key" class="input">
-        <button class="btn" onclick="checkLogin()">Enter</button>
+
+    <div id="login" class="page active">
+        <h2>Login</h2>
+        <input type="password" id="key" class="input" placeholder="Enter Access Key">
+        <button class="btn" onclick="checkLogin()">Enter Business Suite</button>
     </div>
 
-    <div id="main-hub" class="page">
-        <h1 id="user-role"></h1>
+    <div id="hub" class="page">
+        <h2 id="hub-title">Select Panel</h2>
         <div class="grid">
             <button class="btn" onclick="openPanel('Shop')">Shop Panel</button>
             <button class="btn" onclick="openPanel('Factory')">Factory Panel</button>
         </div>
     </div>
-    
-    <div id="content-area" class="page">
-        <h2 id="panel-title"></h2>
-        <div id="tree-menu" class="grid"></div>
-        <div id="ledger-view"></div>
+
+    <div id="panel" class="page">
+        <h2 id="panel-name"></h2>
+        <div id="tree" class="grid"></div>
+        <div id="ledger" style="margin-top:20px;"></div>
     </div>
 
     <script type="module">
-        // Logic for role-based filtering:
-        // Owner sees everything, Manager is filtered via 'if' statements
-        // Every transaction saves with { parent, module, sub, party, invoice, date }
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        
+        const db = getDatabase(initializeApp({ databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" }));
+        let allRecords = [];
+
+        onValue(ref(db, 'records'), (s) => { allRecords = Object.values(s.val() || {}); });
+
+        window.checkLogin = () => {
+            const key = document.getElementById('key').value;
+            if(key === '123') { // Set your Manager key
+                document.getElementById('login').classList.remove('active');
+                document.getElementById('hub').classList.add('active');
+            }
+        };
+
+        window.openPanel = (parent) => {
+            document.getElementById('hub').classList.remove('active');
+            document.getElementById('panel').classList.add('active');
+            document.getElementById('panel-name').innerText = parent + " Management";
+            
+            // Build the Tree Menu dynamically
+            const tree = document.getElementById('tree');
+            const modules = ['Purchasing', 'Transactions', 'Salary', 'Expenses', 'Payments'];
+            tree.innerHTML = modules.map(m => `<button class="btn" onclick="showLedger('${parent}', '${m}')">${m}</button>`).join('');
+        };
+
+        window.showLedger = (parent, module) => {
+            const data = allRecords.filter(r => r.parent === parent && r.module === module);
+            document.getElementById('ledger').innerHTML = data.map(r => `<div>${r.sub}: ${r.qty}</div>`).join('');
+        };
     </script>
 </body>
 </html>
