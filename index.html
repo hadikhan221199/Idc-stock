@@ -8,7 +8,7 @@
         :root { --bg: #0b0b0e; --surface: #16161a; --border: #2d2d35; --primary: #00ff88; --text-main: #ffffff; --text-dim: #a0a0ab; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: var(--bg) !important; color: var(--text-main) !important; padding-bottom: 90px; }
-        header { background: #16161a; padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        header { background: #16161a; padding: 18px 20px; border-bottom: 1px solid var(--border); }
         .page { display: none; padding: 20px; }
         .page.active { display: block; }
         .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
@@ -16,25 +16,37 @@
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #16161a; display: flex; border-top: 1px solid var(--border); }
         .nav-item { flex: 1; padding: 15px; border: none; background: none; color: var(--text-dim); cursor: pointer; text-align: center; }
         .nav-item.active-tab { color: var(--primary); }
+        .input-box { width: 100%; padding: 12px; margin: 5px 0; background: #16161a; color: white; border: 1px solid var(--border); border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1 id="app-title" style="color:var(--primary); font-size: 1.2rem;">IDC Hub</h1>
-    </header>
+    <header><h1 id="app-title" style="color:var(--primary); font-size: 1.2rem;">IDC Hub</h1></header>
 
     <div id="page-hub" class="page active">
         <div class="hub-grid">
             <button class="hub-card" onclick="switchPage('page-modules', 'Shop', 'tab-modules')">🛒 Shop</button>
             <button class="hub-card" onclick="switchPage('page-modules', 'Factory', 'tab-modules')">🏭 Factory</button>
             <button class="hub-card" onclick="switchPage('page-modules', 'Accounts', 'tab-modules')">📊 Accounts</button>
+            <button class="hub-card" onclick="switchPage('page-admin', 'Admin', 'tab-home')" style="border-color:var(--primary)">➕ Add Item</button>
         </div>
     </div>
 
+    <div id="page-admin" class="page">
+        <h3>Add New Product</h3>
+        <input type="text" id="p-name" class="input-box" placeholder="Product Name">
+        <input type="number" id="p-qty" class="input-box" placeholder="Quantity">
+        <select id="p-cat" class="input-box">
+            <option value="Shop">Shop</option>
+            <option value="Factory">Factory</option>
+            <option value="Accounts">Accounts</option>
+        </select>
+        <button onclick="saveProduct()" style="width:100%; padding:15px; background:var(--primary); border:none; border-radius:8px; font-weight:bold; margin-top:10px;">Save to Database</button>
+    </div>
+
     <div id="page-modules" class="page">
-        <h3 id="module-title" style="margin-bottom: 15px;">Module</h3>
-        <div id="module-content">Loading...</div>
+        <h3 id="module-title">Module</h3>
+        <div id="module-content" style="margin-top:20px;"></div>
     </div>
 
     <div class="bottom-nav">
@@ -44,12 +56,20 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const db = getDatabase(initializeApp({ databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" }));
         let allProducts = [];
 
         onValue(ref(db, 'products'), (s) => { allProducts = Object.values(s.val() || {}); });
+
+        window.saveProduct = () => {
+            const name = document.getElementById('p-name').value;
+            const qty = document.getElementById('p-qty').value;
+            const cat = document.getElementById('p-cat').value;
+            if(!name) return alert("Enter name!");
+            set(push(ref(db, 'products')), { name, qty, category: cat }).then(() => alert("Saved!"));
+        };
 
         window.switchPage = (id, title, tab) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
