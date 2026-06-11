@@ -25,11 +25,11 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         
         body { 
-            background-color: var(--bg) !important; 
-            color: var(--text-main) !important; 
-            padding-bottom: 90px;
-            overflow-x: hidden;
-        }
+    background-color: var(--bg) !important;
+    color: var(--text-main) !important;
+    padding-bottom: 90px;
+    overflow-x: hidden;
+}
 
         header { 
             background: rgba(11, 11, 14, 0.9);
@@ -145,8 +145,30 @@
 
         body.manager-mode .admin-only { display: none !important; }
     </style>
+    .hub-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 20px;
+
+.hub-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 25px 10px;
+    border-radius: 16px;
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+}
+hub-card:active { 
+    background: var(--primary); 
+    color: #000; 
+}
 </head>
-<body class="manager-mode">
+    <body class="manager-mode">
 
     <header>
         <div class="brand-container">
@@ -159,7 +181,18 @@
             <span id="mode-label">Manager</span>
         </div>
     </header>
+<div id="page-hub" class="page active">
+    <div class="brand-container" style="justify-content: center; padding: 20px;">
+        <span class="brand-logo" style="font-size: 2rem;">IDC ERP</span>
+    </div>
+    <div class="hub-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px;">
+        <button class="hub-card" onclick="switchPage('page-shop', 'Shop Dashboard', 'tab-shop')">🛒 Shop</button>
+        <button class="hub-card" onclick="switchPage('page-factory', 'Factory Dashboard', 'tab-factory')">🏭 Factory</button>
+        <button class="hub-card" onclick="switchPage('page-accounts', 'Accounts', 'tab-accounts')">📊 Accounts</button>
+    </div>
+</div>
 
+<div id="page1" class="page"> ... </div>
     <div id="page1" class="page">
         <div class="stats-grid admin-only">
             <div class="stat-card full-width">
@@ -236,6 +269,17 @@
     </div>
 
     <script type="module">
+        window.switchPage = (id, title, tab) => {
+    // Hide all pages including the hub
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-tab'));
+    
+    // Show the selected page
+    document.getElementById(id).classList.add('active');
+    
+    // Update title if provided
+    if(title) document.getElementById('app-title').innerText = title;
+};
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
