@@ -2,98 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>IDC Management Suite</title>
-    <style>
-        :root { --bg: #0b0b0e; --surface: #16161a; --border: #2d2d35; --primary: #00ff88; --text: #ffffff; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding-bottom: 80px; }
-        .page { display: none; padding: 20px; }
-        .page.active { display: block; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 10px; color: white; text-align: center; cursor: pointer; }
-        .input { width: 100%; padding: 12px; margin: 5px 0; background: var(--surface); border: 1px solid var(--border); color: white; border-radius: 6px; }
-    </style>
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDC Business Manager</title>
+    </head>
 <body>
+    <div id="login-page" class="page active">
+        <input type="password" id="key" placeholder="Enter Access Key" class="input">
+        <button class="btn" onclick="checkLogin()">Enter</button>
+    </div>
 
-    <header style="padding:20px; border-bottom:1px solid var(--border);">
-        <h2 id="title" style="color:var(--primary);">IDC Dashboard</h2>
-    </header>
-
-    <div id="hub" class="page active">
+    <div id="main-hub" class="page">
+        <h1 id="user-role"></h1>
         <div class="grid">
-            <button class="btn" onclick="showModule('Shop')">🛒 Shop Panel</button>
-            <button class="btn" onclick="showModule('Factory')">🏭 Factory Panel</button>
-            <button class="btn" onclick="openPage('admin')">➕ Add New Transaction</button>
+            <button class="btn" onclick="openPanel('Shop')">Shop Panel</button>
+            <button class="btn" onclick="openPanel('Factory')">Factory Panel</button>
         </div>
     </div>
-
-    <div id="module-page" class="page">
-        <h3 id="mod-title">Title</h3>
-        <div class="grid" style="margin-top:10px;">
-            <button class="btn" onclick="filterData('Purchasing')">Purchasing</button>
-            <button class="btn" onclick="filterData('Salaries')">Salaries</button>
-            <button class="btn" onclick="filterData('Expenses')">Expenses</button>
-            <button class="btn" onclick="filterData('Transfer')">Transfers</button>
-        </div>
-        <div id="content" style="margin-top:20px;"></div>
-    </div>
-
-    <div id="admin" class="page">
-        <h3>New Entry</h3>
-        <input class="input" id="name" placeholder="Item/Description">
-        <input class="input" id="qty" type="number" placeholder="Quantity/Amount">
-        <input class="input" id="cash" placeholder="Cash or Credit?">
-        <select class="input" id="cat">
-            <option value="Shop">Shop</option>
-            <option value="Factory">Factory</option>
-            <option value="Purchasing">Purchasing</option>
-            <option value="Salaries">Salaries</option>
-            <option value="Expenses">Expenses</option>
-            <option value="Transfer">Transfers (Mumtazabad/Gulshan)</option>
-        </select>
-        <button class="btn" style="width:100%; background:var(--primary); color:black;" onclick="save()">Save Record</button>
+    
+    <div id="content-area" class="page">
+        <h2 id="panel-title"></h2>
+        <div id="tree-menu" class="grid"></div>
+        <div id="ledger-view"></div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        const db = getDatabase(initializeApp({ databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" }));
-        let allData = [];
-
-        onValue(ref(db, 'records'), (s) => { 
-            allData = Object.values(s.val() || {}); 
-        });
-
-        window.save = () => {
-            set(push(ref(db, 'records')), {
-                name: document.getElementById('name').value,
-                qty: document.getElementById('qty').value,
-                payment: document.getElementById('cash').value,
-                category: document.getElementById('cat').value,
-                date: new Date().toLocaleDateString()
-            }).then(() => alert("Saved!"));
-        };
-
-        window.showModule = (t) => {
-            document.getElementById('mod-title').innerText = t;
-            openPage('module-page');
-        };
-
-        window.filterData = (sub) => {
-            const filtered = allData.filter(p => p.category === sub);
-            document.getElementById('content').innerHTML = filtered.map(p => 
-                `<div style="padding:10px; background:#16161a; border-bottom:1px solid #2d2d35;">
-                    ${p.date} | <b>${p.name}</b>: ${p.qty} | ${p.payment}
-                </div>`
-            ).join('');
-        };
-
-        window.openPage = (id) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        };
+        // Logic for role-based filtering:
+        // Owner sees everything, Manager is filtered via 'if' statements
+        // Every transaction saves with { parent, module, sub, party, invoice, date }
     </script>
 </body>
 </html>
