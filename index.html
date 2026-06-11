@@ -18,66 +18,43 @@
         .nav-item { flex: 1; padding: 15px; border: none; background: none; color: var(--text-dim); cursor: pointer; }
         .nav-item.active-tab { color: var(--primary); }
         body.manager-mode .admin-only { display: none !important; }
-        .input-field, .add-btn { width: 100%; padding: 14px; margin-top: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: white; }
-        .add-btn { background: var(--primary); color: black; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body class="manager-mode">
 
     <header>
         <h1 id="app-title" style="color:var(--primary); font-size: 1.2rem;">IDC Hub</h1>
-        <div onclick="handleAuth()" style="background:var(--surface); padding:8px 15px; border-radius:20px; cursor:pointer; font-size: 12px;">Toggle Mode</div>
+        <div onclick="document.body.classList.toggle('manager-mode')" style="background:var(--surface); padding:8px 15px; border-radius:20px; cursor:pointer; font-size: 12px; color:white;">Toggle</div>
     </header>
 
     <div id="page-hub" class="page active">
         <div class="hub-grid">
-            <button class="hub-card" onclick="openModule('Shop')">🛒 Shop</button>
-            <button class="hub-card" onclick="openModule('Factory')">🏭 Factory</button>
-            <button class="hub-card" onclick="openModule('Accounts')">📊 Accounts</button>
+            <button class="hub-card" onclick="switchPage('page-modules', 'Shop', 'tab-modules')">🛒 Shop</button>
+            <button class="hub-card" onclick="switchPage('page-modules', 'Factory', 'tab-modules')">🏭 Factory</button>
+            <button class="hub-card" onclick="switchPage('page-modules', 'Accounts', 'tab-modules')">📊 Accounts</button>
         </div>
     </div>
 
     <div id="page-modules" class="page">
-        <h3 id="module-title">Module</h3>
-        <div id="module-content"></div>
+        <h3 id="module-title">Module Data</h3>
+        <div id="module-content" style="margin-top:20px;">
+            <p style="color:var(--text-dim);">Select a module from Home to see data.</p>
+        </div>
     </div>
 
     <div class="bottom-nav">
         <button class="nav-item active-tab" onclick="switchPage('page-hub', 'IDC Hub', null)">🏠 Home</button>
-        <button id="tab-modules" class="nav-item" onclick="switchPage('page-modules', 'Current Module', 'tab-modules')">⚙️ Modules</button>
+        <button id="tab-modules" class="nav-item" onclick="switchPage('page-modules', 'Modules', 'tab-modules')">⚙️ Modules</button>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        const firebaseConfig = { databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        
-        let localProducts = {};
-
-        onValue(ref(db, 'products'), s => { localProducts = s.val() || {}; });
-
         window.switchPage = (id, title, tab) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-tab'));
             document.getElementById(id).classList.add('active');
             if(tab) document.getElementById(tab).classList.add('active-tab');
             document.getElementById('app-title').innerText = title;
-        };
-
-        window.openModule = (moduleName) => {
-            document.getElementById('module-title').innerText = moduleName;
-            const filtered = Object.values(localProducts).filter(p => p.category === moduleName);
-            document.getElementById('module-content').innerHTML = filtered.length > 0 
-                ? filtered.map(p => `<div style="background:#16161a; padding:15px; margin-top:10px; border-radius:10px;">${p.name} - ${p.qty}</div>`).join('')
-                : "<p>No items in " + moduleName + "</p>";
-            switchPage('page-modules', 'IDC | ' + moduleName, 'tab-modules');
-        };
-
-        window.handleAuth = () => {
-            document.body.classList.toggle('manager-mode');
+            if(id === 'page-modules') document.getElementById('module-title').innerText = title;
         };
     </script>
 </body>
