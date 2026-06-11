@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Hadi | Inventory</title>
     <style>
-        :root { --bg: #0b0b0e; --surface: #16161a; --border: #2d2d35; --primary: #00ff88; --secondary: #ff9d00; --text-main: #ffffff; --text-dim: #a0a0ab; }
+        :root { --bg: #0b0b0e; --surface: #16161a; --border: #2d2d35; --primary: #00ff88; --text-main: #ffffff; --text-dim: #a0a0ab; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background-color: var(--bg) !important; color: var(--text-main) !important; padding-bottom: 90px; }
         header { background: #16161a; padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
@@ -13,18 +13,15 @@
         .page.active { display: block; }
         .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
         .hub-card { background: var(--surface); border: 1px solid var(--border); padding: 30px; border-radius: 16px; color: white; font-weight: bold; cursor: pointer; text-align: center; }
-        .hub-card:active { background: var(--primary); color: black; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #16161a; display: flex; border-top: 1px solid var(--border); }
-        .nav-item { flex: 1; padding: 15px; border: none; background: none; color: var(--text-dim); cursor: pointer; }
+        .nav-item { flex: 1; padding: 15px; border: none; background: none; color: var(--text-dim); cursor: pointer; text-align: center; }
         .nav-item.active-tab { color: var(--primary); }
-        body.manager-mode .admin-only { display: none !important; }
     </style>
 </head>
-<body class="manager-mode">
+<body>
 
     <header>
         <h1 id="app-title" style="color:var(--primary); font-size: 1.2rem;">IDC Hub</h1>
-        <div onclick="document.body.classList.toggle('manager-mode')" style="background:var(--surface); padding:8px 15px; border-radius:20px; cursor:pointer; font-size: 12px; color:white;">Toggle</div>
     </header>
 
     <div id="page-hub" class="page active">
@@ -36,49 +33,39 @@
     </div>
 
     <div id="page-modules" class="page">
-        <h3 id="module-title">Module Data</h3>
-        <div id="module-content" style="margin-top:20px;">
-            <p style="color:var(--text-dim);">Select a module from Home to see data.</p>
-        </div>
+        <h3 id="module-title" style="margin-bottom: 15px;">Module</h3>
+        <div id="module-content">Loading...</div>
     </div>
 
     <div class="bottom-nav">
-        <button class="nav-item active-tab" onclick="switchPage('page-hub', 'IDC Hub', null)">🏠 Home</button>
-        <button id="tab-modules" class="nav-item" onclick="switchPage('page-modules', 'Modules', 'tab-modules')">⚙️ Modules</button>
+        <button class="nav-item active-tab" id="tab-home" onclick="switchPage('page-hub', 'IDC Hub', 'tab-home')">🏠 Home</button>
+        <button class="nav-item" id="tab-modules" onclick="switchPage('page-modules', 'Modules', 'tab-modules')">⚙️ Modules</button>
     </div>
 
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = { databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    
-    let allProducts = [];
+        const db = getDatabase(initializeApp({ databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" }));
+        let allProducts = [];
 
-    // Fetch data once and store it
-    onValue(ref(db, 'products'), (snapshot) => {
-        const data = snapshot.val();
-        allProducts = data ? Object.values(data) : [];
-    });
+        onValue(ref(db, 'products'), (s) => { allProducts = Object.values(s.val() || {}); });
 
-    window.switchPage = (id, title, tab) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-tab'));
-        document.getElementById(id).classList.add('active');
-        if(tab) document.getElementById(tab).classList.add('active-tab');
-        document.getElementById('app-title').innerText = title;
-        
-        // If switching to modules, render the specific content
-        if(id === 'page-modules' && title !== 'Modules') {
-            const filtered = allProducts.filter(p => p.category === title);
-            const content = filtered.length > 0 
-                ? filtered.map(p => `<div style="background:#16161a; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #2d2d35;">${p.name} - <b>${p.qty}</b></div>`).join('')
-                : "<p style='color:#a0a0ab;'>No items found in " + title + ".</p>";
-            document.getElementById('module-content').innerHTML = content;
-        }
-    };
-</script>
+        window.switchPage = (id, title, tab) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-tab'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById(tab).classList.add('active-tab');
+            document.getElementById('app-title').innerText = title;
+            
+            if(id === 'page-modules' && title !== 'Modules') {
+                document.getElementById('module-title').innerText = title;
+                const filtered = allProducts.filter(p => p.category === title);
+                document.getElementById('module-content').innerHTML = filtered.length > 0 
+                    ? filtered.map(p => `<div style="background:#16161a; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #2d2d35;">${p.name} - <b>${p.qty}</b></div>`).join('')
+                    : "<p style='color:#a0a0ab;'>No items found in " + title + ".</p>";
+            }
+        };
+    </script>
 </body>
 </html>
