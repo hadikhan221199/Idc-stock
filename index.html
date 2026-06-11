@@ -397,20 +397,25 @@ document.getElementById('status-results').innerHTML = Object.values(localProduct
         };
 
         function updateUI() {
-            document.body.classList.toggle('manager-mode', isManagerMode);
-            document.getElementById('mode-label').innerText = isManagerMode ? "Manager" : "Owner";
-            document.getElementById('mode-toggle').classList.toggle('manager-active', isManagerMode);
-            renderAll();
-        }
+    // This updates the body class, which triggers the CSS hide/show
+    document.body.classList.toggle('manager-mode', isManagerMode);
+    
+    // Update labels and styling
+    document.getElementById('mode-label').innerText = isManagerMode ? "Manager" : "Owner";
+    document.getElementById('mode-toggle').classList.toggle('manager-active', isManagerMode);
+    
+    renderAll();
+}
 
         window.switchPage = (id, title, tab) => {
-            if (isManagerMode && (id === 'page1' || id === 'page5')) return;
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-tab'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById(tab).classList.add('active-tab');
-            document.getElementById('app-title').innerText = title;
-        };
+    // Remove the blocking 'if' statement that prevents navigation
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-tab'));
+    
+    document.getElementById(id).classList.add('active');
+    document.getElementById(tab).classList.add('active-tab');
+    document.getElementById('app-title').innerText = title;
+};
 
         window.deleteProd = id => { if(confirm("Permanently delete this product?")) remove(ref(db, 'products/' + id)); };
 
