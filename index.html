@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Hadi | Inventory</title>
+    <title>IDC Business Manager</title>
     <style>
         :root { --bg: #0b0b0e; --surface: #16161a; --border: #2d2d35; --primary: #00ff88; --text-main: #ffffff; --text-dim: #a0a0ab; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
@@ -11,12 +11,12 @@
         header { background: #16161a; padding: 18px 20px; border-bottom: 1px solid var(--border); }
         .page { display: none; padding: 20px; }
         .page.active { display: block; }
-        .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-        .hub-card { background: var(--surface); border: 1px solid var(--border); padding: 30px; border-radius: 16px; color: white; font-weight: bold; cursor: pointer; text-align: center; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #16161a; display: flex; border-top: 1px solid var(--border); }
-        .nav-item { flex: 1; padding: 15px; border: none; background: none; color: var(--text-dim); cursor: pointer; text-align: center; }
-        .nav-item.active-tab { color: var(--primary); }
+        .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px; }
+        .hub-card { background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; color: white; font-size: 0.9rem; cursor: pointer; text-align: center; }
         .input-box { width: 100%; padding: 12px; margin: 5px 0; background: #16161a; color: white; border: 1px solid var(--border); border-radius: 8px; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #16161a; display: flex; border-top: 1px solid var(--border); }
+        .nav-item { flex: 1; padding: 15px; border: none; background: none; color: var(--text-dim); cursor: pointer; }
+        .nav-item.active-tab { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -27,21 +27,29 @@
         <div class="hub-grid">
             <button class="hub-card" onclick="switchPage('page-modules', 'Shop', 'tab-modules')">🛒 Shop</button>
             <button class="hub-card" onclick="switchPage('page-modules', 'Factory', 'tab-modules')">🏭 Factory</button>
-            <button class="hub-card" onclick="switchPage('page-modules', 'Accounts', 'tab-modules')">📊 Accounts</button>
-            <button class="hub-card" onclick="switchPage('page-admin', 'Admin', 'tab-home')" style="border-color:var(--primary)">➕ Add Item</button>
+            <button class="hub-card" onclick="switchPage('page-modules', 'Salary', 'tab-modules')">💰 Salary</button>
+            <button class="hub-card" onclick="switchPage('page-modules', 'Expense', 'tab-modules')">📉 Expense</button>
+            <button class="hub-card" onclick="switchPage('page-modules', 'Purchasing', 'tab-modules')">📦 Purchase</button>
+            <button class="hub-card" onclick="switchPage('page-modules', 'Sales', 'tab-modules')">📈 Sales</button>
+            <button class="hub-card" onclick="switchPage('page-modules', 'Payments', 'tab-modules')">💳 Payments</button>
+            <button class="hub-card" onclick="switchPage('page-admin', 'Admin', 'tab-home')" style="border-color:var(--primary)">➕ Add New</button>
         </div>
     </div>
 
     <div id="page-admin" class="page">
-        <h3>Add New Product</h3>
-        <input type="text" id="p-name" class="input-box" placeholder="Product Name">
-        <input type="number" id="p-qty" class="input-box" placeholder="Quantity">
+        <h3>Add Record</h3>
+        <input type="text" id="p-name" class="input-box" placeholder="Name / Description">
+        <input type="number" id="p-qty" class="input-box" placeholder="Amount / Quantity">
         <select id="p-cat" class="input-box">
-            <option value="Shop">Shop</option>
-            <option value="Factory">Factory</option>
-            <option value="Accounts">Accounts</option>
+            <option value="Shop">Shop Stock</option>
+            <option value="Factory">Factory Stock</option>
+            <option value="Salary">Salary</option>
+            <option value="Expense">Expense</option>
+            <option value="Purchasing">Purchasing</option>
+            <option value="Sales">Sales Account</option>
+            <option value="Payments">Payments</option>
         </select>
-        <button onclick="saveProduct()" style="width:100%; padding:15px; background:var(--primary); border:none; border-radius:8px; font-weight:bold; margin-top:10px;">Save to Database</button>
+        <button onclick="saveProduct()" style="width:100%; padding:15px; background:var(--primary); border:none; border-radius:8px; font-weight:bold; margin-top:10px;">Save Record</button>
     </div>
 
     <div id="page-modules" class="page">
@@ -67,15 +75,15 @@
             const name = document.getElementById('p-name').value;
             const qty = document.getElementById('p-qty').value;
             const cat = document.getElementById('p-cat').value;
-            if(!name) return alert("Enter name!");
-            set(push(ref(db, 'products')), { name, qty, category: cat }).then(() => alert("Saved!"));
+            if(!name) return alert("Enter details!");
+            set(push(ref(db, 'products')), { name, qty, category: cat }).then(() => alert("Saved to " + cat));
         };
 
         window.switchPage = (id, title, tab) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-tab'));
             document.getElementById(id).classList.add('active');
-            document.getElementById(tab).classList.add('active-tab');
+            if(tab) document.getElementById(tab).classList.add('active-tab');
             document.getElementById('app-title').innerText = title;
             
             if(id === 'page-modules' && title !== 'Modules') {
@@ -83,7 +91,7 @@
                 const filtered = allProducts.filter(p => p.category === title);
                 document.getElementById('module-content').innerHTML = filtered.length > 0 
                     ? filtered.map(p => `<div style="background:#16161a; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #2d2d35;">${p.name} - <b>${p.qty}</b></div>`).join('')
-                    : "<p style='color:#a0a0ab;'>No items found in " + title + ".</p>";
+                    : "<p style='color:#a0a0ab;'>No records in " + title + ".</p>";
             }
         };
     </script>
