@@ -6,30 +6,26 @@
     <title>IDC Business Suite</title>
     <style>
         :root { --bg: #0b0b0e; --surface: #16161a; --primary: #00ff88; --received: #00ff88; --sent: #ff4444; }
-        /* padding-bottom: 80px add kiya hai taaki buttons content ke upar na aayein */
-        body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 10px; margin: 0; padding-bottom: 80px; }
-        .page { display: none; } .active { display: block; }
         
-        /* Layout Adjustments */
+        /* FIX: Body padding ko specific kiya taaki bottom overlap na ho */
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; padding: 10px 10px 80px 10px; box-sizing: border-box; }
+        
+        .page { display: none; } .active { display: block; }
         h2 { margin: 10px 0; font-size: 1.4em; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .btn { background: var(--surface); border: 1px solid #333; padding: 12px; color: white; border-radius: 8px; cursor: pointer; font-size: 0.9em; }
-        
-        /* Compact Inputs */
         .input { width: 100%; padding: 8px; margin: 4px 0; background: var(--surface); color: white; border: 1px solid #333; border-radius: 6px; box-sizing: border-box; }
         #editorArea { margin-top: 10px; padding: 10px; border: 1px solid #333; border-radius: 8px; }
         
-        /* Summary & Cards */
         .summary-box { background: #1a1a1f; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); margin: 10px 0; display: flex; justify-content: space-around; text-align: center; font-size: 0.85em; }
         .table-view { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .card { background: var(--surface); padding: 8px; margin: 5px 0; border-left: 4px solid var(--primary); font-size: 0.85em; border-radius: 4px; }
         
-        /* Iframe Responsive */
         #stockContainer { display: none; width: 100%; height: 75vh; margin-top: 10px; }
         #stockFrame { width: 100%; height: 100%; border: none; background: var(--bg); }
 
-        /* Bottom Nav Fix */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #16161a; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 1000; }
+        /* Bottom Nav Fix - Yahan z-index aur background ensure kiya hai */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #16161a; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #333; z-index: 9999; }
         .nav-item { background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center; font-size: 0.7em; cursor: pointer; }
     </style>
 </head>
@@ -65,18 +61,14 @@
     <div id="panelView" class="page">
         <button class="btn" onclick="location.reload()">← Back</button>
         <h2 id="pTitle"></h2>
-        
         <div id="stockContainer"></div>
-
         <div id="accountContent">
             <div id="summaryArea" class="summary-box" style="display:none;">
                 <div><span id="labelL">Loan</span><br><b id="sumRec" style="color:var(--received)">0</b></div>
                 <div><span id="labelP">Paid</span><br><b id="sumSent" style="color:var(--sent)">0</b></div>
                 <div>Balance<br><b id="sumBal">0</b></div>
             </div>
-
             <div id="subTabs" class="grid"></div>
-            
             <div id="editorArea" style="display:none;">
                 <input type="date" id="dateIn" class="input">
                 <input type="text" id="nameIn" class="input" placeholder="Product/Detail">
@@ -87,7 +79,6 @@
                 </select>
                 <button class="btn" style="width:100%; background:var(--primary); color:black;" onclick="saveEntry()">Save Data</button>
             </div>
-
             <div id="displayArea" class="table-view" style="display:none;">
                 <div id="receivedList"><h4 id="headL">Loan</h4></div>
                 <div id="saleList"><h4 id="headP">Paid</h4></div>
@@ -97,16 +88,16 @@
     </div>
 
     <div class="bottom-nav">
-        <button class="nav-item" onclick="location.reload()">⚙️<span>CONTROL</span></button>
-        <button class="nav-item">📝<span>MANAGE</span></button>
-        <button class="nav-item">🔍<span>SEARCH</span></button>
-        <button class="nav-item">📊<span>STATUS</span></button>
-        <button class="nav-item">⚠️<span>ALERTS</span></button>
+        <button class="nav-item" onclick="location.reload()">⚙️<br>CONTROL</button>
+        <button class="nav-item">📝<br>MANAGE</button>
+        <button class="nav-item">🔍<br>SEARCH</button>
+        <button class="nav-item">📊<br>STATUS</button>
+        <button class="nav-item">⚠️<br>ALERTS</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         
         const db = getDatabase(initializeApp({ databaseURL: "https://idcstock-default-rtdb.firebaseio.com/" }));
         let state = { parent: '', sub: '', finalSub: '' };
