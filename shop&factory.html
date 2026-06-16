@@ -36,8 +36,8 @@
             <select id="gSub" class="input"></select>
             <button class="btn" style="background:var(--primary); color:black;" onclick="searchGlobal()">Search Results</button>
             <div id="totalsArea" class="summary-box" style="display:none;">
-                <div>Cash<br><b id="gCash" style="color:var(--cash)">0</b></div>
-                <div>Credit<br><b id="gCredit" style="color:var(--credit)">0</b></div>
+                <div>Received<br><b id="gReceived" style="color:var(--Received)">0</b></div>
+                <div>Provide<br><b id="gProvide" style="color:var(--Provide)">0</b></div>
                 <div>Bal<br><b id="gBal">0</b></div>
             </div>
             <div id="gResults"></div>
@@ -48,8 +48,8 @@
         <button class="btn" onclick="location.reload()">← Back</button>
         <h2 id="pTitle"></h2>
         <div class="summary-box">
-            <div>Cash<br><b id="sumCash" style="color:var(--cash)">0</b></div>
-            <div>Credit<br><b id="sumCredit" style="color:var(--credit)">0</b></div>
+            <div>Received<br><b id="sumReceived" style="color:var(--Received)">0</b></div>
+            <div>Provide<br><b id="sumProvide" style="color:var(--Provide)">0</b></div>
             <div>Bal<br><b id="sumBal">0</b></div>
         </div>
         
@@ -65,7 +65,7 @@
             <input type="date" id="dateIn" class="input">
             <input type="text" id="nameIn" class="input" placeholder="Details/Name">
             <input type="number" id="amtIn" class="input" placeholder="Amount">
-            <select id="typeIn" class="input"><option value="Cash">Cash</option><option value="Credit">Credit</option></select>
+            <select id="typeIn" class="input"><option value="Received">Received</option><option value="Provide">Provide</option></select>
             <button id="saveBtn" class="btn" style="background:var(--primary); color:black;" onclick="saveData()">Save Data</button>
         </div>
         <div id="displayArea"></div>
@@ -171,10 +171,10 @@
             const p = document.getElementById('gPanel').value, d = document.getElementById('gDate').value, c = document.getElementById('gCat').value, s = document.getElementById('gSub').value;
             let list = allRecords.filter(r => r.parent === p && r.cat === c && r.sub === s);
             if(d) list = list.filter(r => r.date === d);
-            const cash = list.filter(r => r.type === 'Cash').reduce((a,b) => a + Number(b.amount || 0), 0);
-            const credit = list.filter(r => r.type === 'Credit').reduce((a,b) => a + Number(b.amount || 0), 0);
+            const Received = list.filter(r => r.type === 'Received').reduce((a,b) => a + Number(b.amount || 0), 0);
+            const Provide = list.filter(r => r.type === 'Provide').reduce((a,b) => a + Number(b.amount || 0), 0);
             document.getElementById('totalsArea').style.display = 'flex';
-            document.getElementById('gCash').innerText = cash; document.getElementById('gCredit').innerText = credit; document.getElementById('gBal').innerText = (cash - credit);
+            document.getElementById('gReceived').innerText = Received; document.getElementById('gProvide').innerText = Provide; document.getElementById('gBal').innerText = (Received - Provide);
             document.getElementById('gResults').innerHTML = list.map(r => `<div class="card"><div>${r.name}<br>${r.amount}</div></div>`).join('');
         };
     </script>
